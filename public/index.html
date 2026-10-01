@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#6B4226">
+  <title>Roulette Tôn Giáo</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="module" src="/js/main.js"></script>
+</head>
+<body>
+  <header class="hud wood" id="hud" hidden>
+    <div class="hud-player">
+      <span class="avatar" id="hud-avatar"></span>
+      <span class="hud-name" id="hud-name"></span>
+    </div>
+    <div class="hud-mid">
+      <span id="hud-round"></span>
+      <span class="hud-dots" id="hud-dots"></span>
+    </div>
+    <div class="hud-score" id="hud-score-box"><span class="coin"></span><span id="hud-score">0</span></div>
+    <button class="icon-btn" id="btn-sound" type="button" aria-label="Bật/tắt hiệu ứng âm thanh" title="Âm thanh">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="slash" d="M3 3l18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-music" type="button" aria-label="Bật/tắt nhạc nền" title="Nhạc nền">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6l10-2v11.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="17.5" r="2.8" fill="currentColor"/><circle cx="16.5" cy="15.5" r="2.8" fill="currentColor"/><path class="slash" d="M3 3l18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </button>
+  </header>
+
+  <main class="app">
+    <!-- Màn hình chào -->
+    <section class="screen" id="screen-welcome">
+      <div class="card wood">
+        <div class="felt welcome-inner">
+          <h1 class="logo"><span class="logo-top">Roulette</span><span class="logo-bottom">Tôn Giáo</span></h1>
+          <div class="welcome-wheel"><canvas id="welcome-wheel"></canvas></div>
+          <form class="join-form" id="join-form" autocomplete="off">
+            <label for="name-input">Tên của bạn</label>
+            <input class="text-input" id="name-input" maxlength="20" placeholder="VD: Nguyễn Văn An" enterkeyhint="go">
+            <button class="btn btn-big" type="submit">Bắt đầu chơi</button>
+          </form>
+          <ul class="rules">
+            <li>Mỗi câu đúng <b>+300 điểm</b> · <b>30 giây</b>/câu</li>
+            <li>Sau mỗi 3 câu: <b>3 lượt quay</b>. Đỏ/Đen <b>×2</b>, Xanh <b>×35</b></li>
+            <li>Hết điểm thì bỏ qua lượt quay, trả lời tiếp để kiếm điểm</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Giới thiệu vòng / câu tiếp theo -->
+    <section class="screen screen-center" id="screen-ready">
+      <div class="card wood">
+        <div class="felt ready-inner">
+          <div class="ready-kicker" id="ready-kicker"></div>
+          <div class="ready-title" id="ready-title"></div>
+          <p class="ready-sub" id="ready-sub"></p>
+          <button class="btn btn-big" id="ready-btn" type="button">Bắt đầu</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Câu hỏi -->
+    <section class="screen" id="screen-question">
+      <div class="card wood">
+        <div class="felt question-inner">
+          <div class="q-top">
+            <div class="q-meta" id="q-meta"></div>
+            <div class="timer" id="timer" role="timer">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><circle class="timer-bg" cx="24" cy="24" r="20"/><circle class="timer-fg" id="timer-fg" cx="24" cy="24" r="20"/></svg>
+              <span id="timer-text">30</span>
+            </div>
+          </div>
+          <h2 class="q-text" id="q-text"></h2>
+          <div class="options" id="options"></div>
+          <div class="q-feedback" id="q-feedback" hidden>
+            <div class="q-verdict" id="q-verdict" aria-live="polite"></div>
+            <button class="btn btn-big" id="q-next" type="button">Tiếp tục</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bàn quay -->
+    <section class="screen" id="screen-spin">
+      <div class="table wood" id="table">
+        <div class="felt table-felt">
+          <div class="wheel-bowl">
+            <canvas id="wheel"></canvas>
+            <div class="spin-banner" id="spin-banner" hidden><strong id="banner-color"></strong><span id="banner-line"></span></div>
+          </div>
+          <div class="bet-area" id="bet-area">
+            <div class="bet-label" id="bet-label" hidden>
+              <b id="bet-label-title"></b>
+              <span id="bet-label-sub"></span>
+            </div>
+            <div class="bet-cards" id="bet-cards" role="radiogroup" aria-label="Chọn màu cược">
+              <button class="bet-card green" data-color="green" type="button" role="radio" aria-checked="false" aria-label="Cược Xanh, thưởng ×35">
+                <span class="jackpot-tag">JACKPOT</span>
+                <span class="bet-mult">×35</span>
+                <span class="bet-name">XANH · 1 ô</span>
+                <span class="chip-stack" hidden></span>
+              </button>
+              <button class="bet-card black" data-color="black" type="button" role="radio" aria-checked="false" aria-label="Cược Đen, thưởng ×2">
+                <span class="bet-mult">×2</span>
+                <span class="bet-name">ĐEN · 20 ô</span>
+                <span class="chip-stack" hidden></span>
+              </button>
+              <button class="bet-card red" data-color="red" type="button" role="radio" aria-checked="false" aria-label="Cược Đỏ, thưởng ×2">
+                <span class="bet-mult">×2</span>
+                <span class="bet-name">ĐỎ · 20 ô</span>
+                <span class="chip-stack" hidden></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="controls wood" id="controls">
+        <div class="amount-row">
+          <label class="amount-box" for="bet-input">
+            <span>Cược</span>
+            <input id="bet-input" type="text" inputmode="numeric" autocomplete="off" value="0">
+          </label>
+          <input class="range" id="bet-range" type="range" min="0" max="0" step="1" value="0" aria-label="Kéo để chọn số điểm cược">
+        </div>
+        <div class="chips">
+          <button type="button" data-chip="0">0</button>
+          <button type="button" data-chip="100">+100</button>
+          <button type="button" data-chip="500">+500</button>
+          <button type="button" data-chip="half">½</button>
+          <button type="button" data-chip="all">Tất tay</button>
+        </div>
+        <div class="bet-summary" id="bet-summary"></div>
+        <div class="spin-row">
+          <div class="spin-info">
+            <div class="spin-tokens" id="spin-tokens"></div>
+            <span id="spin-left-text"></span>
+          </div>
+          <button class="btn btn-big btn-spin" id="spin-btn" type="button">QUAY!</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kết thúc -->
+    <section class="screen screen-center" id="screen-end">
+      <div class="card wood">
+        <div class="felt end-inner">
+          <svg class="trophy" viewBox="0 0 120 120" aria-hidden="true">
+            <path d="M34 22h52v18c0 20-11 34-26 34S34 60 34 40z" fill="#F4C542" stroke="#3B2413" stroke-width="5" stroke-linejoin="round"/>
+            <path d="M34 30H18c0 16 8 26 20 28M86 30h16c0 16-8 26-20 28" fill="none" stroke="#3B2413" stroke-width="5" stroke-linecap="round"/>
+            <path d="M52 74h16v14H52z" fill="#D4A017" stroke="#3B2413" stroke-width="5" stroke-linejoin="round"/>
+            <rect x="36" y="88" width="48" height="14" rx="4" fill="#8B5A2B" stroke="#3B2413" stroke-width="5"/>
+            <path d="M46 30c0 12 3 22 10 28" fill="none" stroke="#FFF3D6" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+          </svg>
+          <h2 class="end-title">Hoàn thành!</h2>
+          <div class="end-name" id="end-name"></div>
+          <div class="end-score"><strong id="end-score">0</strong>điểm</div>
+          <div class="end-stats">
+            <div><b id="end-correct">0/21</b><span>Câu đúng</span></div>
+            <div><b id="end-rank">#1</b><span id="end-players">Xếp hạng</span></div>
+            <div><b id="end-wins">0</b><span>Lần thắng cược</span></div>
+          </div>
+          <a class="btn btn-big" href="/bxh" target="_blank" rel="noopener">Xem bảng xếp hạng</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="modal" hidden>
+    <div class="modal wood" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="felt modal-inner">
+        <h3 id="modal-title"></h3>
+        <p id="modal-body"></p>
+        <button class="btn btn-big" id="modal-btn" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="jackpot" id="jackpot" hidden>
+    <div class="jackpot-rays"></div>
+    <div class="jackpot-text">JACKPOT!</div>
+    <div class="jackpot-mult">Trúng ô Xanh ×35</div>
+    <div class="jackpot-amount" id="jackpot-amount"></div>
+    <div class="jackpot-hint">Chạm để tiếp tục</div>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+</body>
+</html>

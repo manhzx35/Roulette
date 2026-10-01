@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bảng xếp hạng · Roulette Tôn Giáo</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="module" src="/js/bxh.js"></script>
+</head>
+<body class="bxh-page">
+  <div class="bxh-wrap">
+    <header class="bxh-header wood">
+      <h1 class="logo"><span class="logo-top">Roulette</span><span class="logo-bottom">Tôn Giáo</span></h1>
+      <div class="bxh-counts">
+        <div><b id="count-players">0</b> người chơi</div>
+        <div><b id="count-done">0</b> đã hoàn thành</div>
+      </div>
+      <div class="bxh-join">
+        <div class="bxh-join-text"><small>Quét mã hoặc vào</small><b id="join-url"></b></div>
+        <img id="join-qr" alt="Mã QR để vào game">
+      </div>
+    </header>
+    <main class="wood">
+      <div class="felt bxh-board">
+        <h2 class="bxh-title">Bảng xếp hạng</h2>
+        <ol class="bxh-list" id="bxh-list"></ol>
+        <p class="bxh-empty" id="bxh-empty">Chưa có ai vào chơi. Quét mã QR để tham gia nhé!</p>
+      </div>
+    </main>
+  </div>
+  <div class="conn" id="conn">● Đang kết nối…</div>
+  <button class="icon-btn admin-btn" id="admin-btn" type="button" title="Đặt lại trò chơi (cần mã quản trị)">⚙</button>
+</body>
+</html>

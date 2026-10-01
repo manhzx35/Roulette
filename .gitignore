@@ -1,0 +1,22 @@
+# Thư viện cài bằng npm install (Vercel/Render tự cài lại)
+node_modules/
+
+# Dữ liệu người chơi khi chạy trên máy (có token đăng nhập của từng người)
+data/
+
+# Biến môi trường, mật khẩu, token Upstash
+.env
+.env.*
+
+# Thư mục Vercel CLI tạo khi chạy `vercel link`
+.vercel/
+
+# Cấu hình riêng của IDE / hệ điều hành
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Log
+npm-debug.log*
+*.log

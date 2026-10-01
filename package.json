@@ -1,0 +1,24 @@
+{
+  "name": "roulette-ton-giao",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Roulette Tôn Giáo – game ôn tập trắc nghiệm kết hợp vòng quay Roulette",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "dev:vercel": "node scripts/dev-vercel.js",
+    "test": "node --test test/*.test.js",
+    "loadtest": "node scripts/loadtest.js"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.39.0",
+    "compression": "^1.8.2",
+    "express": "^5.2.1",
+    "qrcode": "^1.5.4"
+  }
+}
