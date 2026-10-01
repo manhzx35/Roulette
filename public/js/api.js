@@ -75,3 +75,4 @@ export const getState = () => call('GET', '/api/state');
 export const startQuestion = () => call('POST', '/api/question');
 export const answer = (qIndex, choice) => call('POST', '/api/answer', { qIndex, choice });
 export const spin = (spinsLeft, color, amount) => call('POST', '/api/spin', { spinsLeft, color, amount });
+export const leaderboard = () => call('GET', '/api/bxh');

@@ -33,22 +33,19 @@
 
   <main class="app">
     <!-- Màn hình chào -->
+    <!-- Menu chính -->
     <section class="screen" id="screen-welcome">
-      <div class="card wood">
-        <div class="felt welcome-inner">
-          <h1 class="logo"><span class="logo-top">Roulette</span><span class="logo-bottom">Tôn Giáo</span></h1>
-          <div class="welcome-wheel"><canvas id="welcome-wheel"></canvas></div>
-          <form class="join-form" id="join-form" autocomplete="off">
-            <label for="name-input">Tên của bạn</label>
-            <input class="text-input" id="name-input" maxlength="20" placeholder="VD: Nguyễn Văn An" enterkeyhint="go">
-            <button class="btn btn-big" type="submit">Bắt đầu chơi</button>
-          </form>
-          <ul class="rules">
-            <li>Mỗi câu đúng <b>+300 điểm</b> · <b>30 giây</b>/câu</li>
-            <li>Sau mỗi 3 câu: <b>3 lượt quay</b>. Đỏ/Đen <b>×2</b>, Xanh <b>×35</b></li>
-            <li>Hết điểm thì bỏ qua lượt quay, trả lời tiếp để kiếm điểm</li>
-          </ul>
-        </div>
+      <div class="menu">
+        <div class="marquee" aria-hidden="true"></div>
+        <h1 class="logo"><span class="logo-top">Roulette</span><span class="logo-bottom">Tôn Giáo</span></h1>
+        <p class="tagline">Trả lời. Đặt cược. Quay. Thắng.</p>
+        <div class="welcome-wheel"><canvas id="welcome-wheel"></canvas></div>
+        <nav class="menu-buttons" aria-label="Menu chính">
+          <button class="menu-btn primary" id="menu-play" type="button">Chơi</button>
+          <button class="menu-btn" id="menu-board" type="button">Bảng xếp hạng</button>
+          <button class="menu-btn" id="menu-howto" type="button">Hướng dẫn</button>
+        </nav>
+        <p class="menu-footnote">Chỉ là điểm ảo, không ai mất tiền thật.</p>
       </div>
     </section>
 
@@ -164,11 +161,98 @@
             <div><b id="end-rank">#1</b><span id="end-players">Xếp hạng</span></div>
             <div><b id="end-wins">0</b><span>Lần thắng cược</span></div>
           </div>
-          <a class="btn btn-big" href="/bxh" target="_blank" rel="noopener">Xem bảng xếp hạng</a>
+          <div class="end-actions">
+            <button class="menu-btn" id="end-board" type="button">Bảng xếp hạng</button>
+            <button class="menu-btn" id="end-menu" type="button">Về menu</button>
+          </div>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- Nhập tên -->
+  <div class="modal-backdrop" id="name-dialog" hidden>
+    <form class="dialog wood" id="join-form" role="dialog" aria-modal="true" aria-labelledby="name-title" autocomplete="off">
+      <div class="felt dialog-inner">
+        <h2 class="dialog-title" id="name-title">Nhập tên của bạn</h2>
+        <input class="name-input" id="name-input" maxlength="20" placeholder="VD: Nguyễn Văn An" enterkeyhint="go" aria-labelledby="name-title">
+        <p class="dialog-hint">Tên sẽ hiện trên bảng xếp hạng của cả lớp.</p>
+        <div class="dialog-actions">
+          <button class="menu-btn" type="button" data-close>Quay lại</button>
+          <button class="menu-btn primary" type="submit">Bắt đầu</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Bảng xếp hạng trong game -->
+  <div class="modal-backdrop" id="board-dialog" hidden>
+    <div class="dialog dialog-wide wood" role="dialog" aria-modal="true" aria-labelledby="board-title">
+      <div class="felt dialog-inner">
+        <h2 class="dialog-title" id="board-title">Bảng xếp hạng</h2>
+        <table class="board-table">
+          <thead><tr><th>Hạng</th><th>Người chơi</th><th>Điểm</th></tr></thead>
+          <tbody id="board-rows"></tbody>
+        </table>
+        <p class="dialog-hint" id="board-note"></p>
+        <div class="dialog-actions">
+          <button class="menu-btn" type="button" id="board-refresh">Làm mới</button>
+          <button class="menu-btn" type="button" data-close>Quay lại</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hướng dẫn -->
+  <div class="modal-backdrop" id="howto-dialog" hidden>
+    <div class="dialog dialog-wide wood" role="dialog" aria-modal="true" aria-labelledby="howto-title">
+      <div class="felt dialog-inner">
+        <h2 class="dialog-title" id="howto-title">Hướng dẫn</h2>
+        <div class="howto-slides">
+          <section class="howto-slide">
+            <div class="howto-art" aria-hidden="true">
+              <div class="art-quiz"><span></span><span class="ok"></span><span></span><span></span><em>Đúng</em></div>
+              <div class="art-arrow"></div>
+              <div class="art-coin">+300</div>
+            </div>
+            <h3>Trả lời để có điểm</h3>
+            <p>Mỗi câu đúng được <b>+300 điểm</b>. Mỗi câu có <b>30 giây</b>, hết giờ tính là sai nhưng không bị trừ điểm.</p>
+          </section>
+          <section class="howto-slide">
+            <div class="howto-art" aria-hidden="true">
+              <div class="art-card green">×35</div>
+              <div class="art-card black">×2</div>
+              <div class="art-card red picked">×2<i>100</i></div>
+            </div>
+            <h3>Chọn màu và đặt cược</h3>
+            <p>Sau mỗi 3 câu có <b>3 lượt quay</b>. Mỗi lượt chọn 1 màu và số điểm muốn cược. Được cược <b>0 điểm</b>.</p>
+          </section>
+          <section class="howto-slide">
+            <div class="howto-art" aria-hidden="true">
+              <div class="art-wheel"><span></span></div>
+              <div class="art-payouts"><b class="c-red">Đỏ/Đen ×2</b><b class="c-green">Xanh ×35</b></div>
+            </div>
+            <h3>Quay trúng thì nhân điểm</h3>
+            <p>Vòng quay có 20 ô Đỏ, 20 ô Đen, 1 ô Xanh. Trúng Đỏ/Đen nhận <b>×2</b>, trúng Xanh nhận <b>×35</b>. Trật thì mất số điểm đã cược.</p>
+          </section>
+          <section class="howto-slide">
+            <div class="howto-art" aria-hidden="true">
+              <div class="art-coin empty">0</div>
+              <div class="art-arrow"></div>
+              <div class="art-quiz"><span></span><span></span><span class="ok"></span><span></span></div>
+            </div>
+            <h3>Hết điểm vẫn gỡ được</h3>
+            <p>Về 0 điểm thì bỏ qua lượt quay còn lại và trả lời tiếp 3 câu để gỡ. Chơi đủ <b>7 vòng</b>, ai nhiều điểm nhất thắng!</p>
+          </section>
+        </div>
+        <div class="howto-dots" id="howto-dots"></div>
+        <div class="dialog-actions">
+          <button class="menu-btn" type="button" id="howto-back">Quay lại</button>
+          <button class="menu-btn primary" type="button" id="howto-next">Tiếp</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-backdrop" id="modal" hidden>
     <div class="modal wood" role="dialog" aria-modal="true" aria-labelledby="modal-title">

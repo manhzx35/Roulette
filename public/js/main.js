@@ -140,7 +140,7 @@ async function recover(err) {
       button: 'Chơi lại',
     });
     setBalance(0, false);
-    show('welcome');
+    showMenu();
     return;
   }
   if (err.status === 400) toast(err.message);
@@ -170,7 +170,59 @@ function skipNotice(skipped) {
   });
 }
 
-// ---------- Màn hình chào ----------
+// ---------- Hộp thoại ----------
+function openDialog(id) {
+  const el = $(`#${id}`);
+  el.hidden = false;
+  replay(el.querySelector('.dialog'), 'dialog');
+  sfx.pop();
+  return el;
+}
+
+function closeDialog(id) {
+  $(`#${id}`).hidden = true;
+  if (id === 'board-dialog') clearInterval(boardTimer);
+}
+
+const openDialogs = () => [...document.querySelectorAll('.modal-backdrop:not([hidden])')].filter((el) => el.id !== 'modal');
+
+for (const btn of document.querySelectorAll('[data-close]')) {
+  btn.addEventListener('click', () => {
+    sfx.click();
+    closeDialog(btn.closest('.modal-backdrop').id);
+  });
+}
+
+for (const id of ['board-dialog', 'howto-dialog']) {
+  // Chạm ra ngoài khung để đóng.
+  $(`#${id}`).addEventListener('click', (event) => {
+    if (event.target.id === id) closeDialog(id);
+  });
+}
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  const top = openDialogs().at(-1);
+  if (top) closeDialog(top.id);
+});
+
+// ---------- Menu chính ----------
+function showMenu() {
+  $('#menu-play').textContent = !S ? 'Chơi' : S.phase === 'done' ? 'Xem kết quả' : 'Chơi tiếp';
+  renderSoundButtons();
+  show('welcome');
+}
+
+$('#menu-play').addEventListener('click', () => {
+  sfx.click();
+  if (S) {
+    route(); // đã có lượt chơi trên máy này → vào tiếp đúng chỗ
+    return;
+  }
+  openDialog('name-dialog');
+  $('#name-input').focus();
+});
+
 $('#join-form').addEventListener('submit', (event) => {
   event.preventDefault();
   sfx.unlock();
@@ -184,10 +236,112 @@ $('#join-form').addEventListener('submit', (event) => {
   sfx.click();
   act(async () => {
     S = (await api.join(name)).state;
+    closeDialog('name-dialog');
     endCelebrated = false;
     setBalance(S.balance, false);
     route();
   });
+});
+
+// ---------- Bảng xếp hạng trong game ----------
+const BOARD_TOP = 10;
+const BOARD_REFRESH_MS = 5000;
+let boardTimer = 0;
+
+function boardRow(rank, player, className = '') {
+  const tr = document.createElement('tr');
+  tr.className = className;
+  for (const text of [`#${rank}`, player.name, fmt(player.balance)]) {
+    const td = document.createElement('td');
+    td.textContent = text;
+    tr.append(td);
+  }
+  return tr;
+}
+
+async function loadBoard() {
+  const rows = $('#board-rows');
+  try {
+    const board = await api.leaderboard();
+    const myIndex = S ? board.players.findIndex((p) => p.id === S.id) : -1;
+    const list = board.players.slice(0, BOARD_TOP).map((p, i) => boardRow(i + 1, p, i === myIndex ? 'me' : ''));
+    if (myIndex >= BOARD_TOP) {
+      const gap = document.createElement('tr');
+      gap.className = 'gap';
+      gap.innerHTML = '<td colspan="3">⋯</td>';
+      list.push(gap, boardRow(myIndex + 1, board.players[myIndex], 'me'));
+    }
+    if (!list.length) {
+      const empty = document.createElement('tr');
+      empty.className = 'empty';
+      empty.innerHTML = '<td colspan="3">Chưa có ai chơi. Hãy là người đầu tiên!</td>';
+      list.push(empty);
+    }
+    rows.replaceChildren(...list);
+    $('#board-note').textContent = `${board.totalPlayers} người chơi · ${board.finished} đã hoàn thành`;
+  } catch {
+    $('#board-note').textContent = 'Không tải được bảng xếp hạng, bấm Làm mới để thử lại.';
+  }
+}
+
+function openBoard() {
+  openDialog('board-dialog');
+  loadBoard();
+  clearInterval(boardTimer);
+  boardTimer = setInterval(loadBoard, BOARD_REFRESH_MS);
+}
+
+$('#menu-board').addEventListener('click', () => {
+  sfx.click();
+  openBoard();
+});
+
+$('#board-refresh').addEventListener('click', () => {
+  sfx.chip();
+  loadBoard();
+});
+
+// ---------- Hướng dẫn ----------
+const slides = [...document.querySelectorAll('.howto-slide')];
+let slideIndex = 0;
+
+function renderSlide() {
+  slides.forEach((slide, i) => slide.classList.toggle('active', i === slideIndex));
+  $('#howto-dots').replaceChildren(
+    ...slides.map((_, i) => {
+      const dot = document.createElement('span');
+      if (i === slideIndex) dot.className = 'active';
+      return dot;
+    }),
+  );
+  $('#howto-next').textContent = slideIndex === slides.length - 1 ? 'Đã hiểu' : 'Tiếp';
+}
+
+function stepSlide(delta) {
+  const next = slideIndex + delta;
+  if (next < 0 || next >= slides.length) {
+    closeDialog('howto-dialog');
+    return;
+  }
+  slideIndex = next;
+  sfx.select();
+  renderSlide();
+}
+
+$('#menu-howto').addEventListener('click', () => {
+  sfx.click();
+  slideIndex = 0;
+  renderSlide();
+  openDialog('howto-dialog');
+});
+
+$('#howto-back').addEventListener('click', () => stepSlide(-1));
+$('#howto-next').addEventListener('click', () => stepSlide(1));
+
+document.addEventListener('keydown', (event) => {
+  if ($('#howto-dialog').hidden) return;
+  if (event.key === 'ArrowRight') stepSlide(1);
+  if (event.key === 'ArrowLeft') stepSlide(-1);
 });
 
 // ---------- Giới thiệu vòng ----------
@@ -607,6 +761,16 @@ function renderRank() {
   $('#end-players').textContent = `trên ${S.playerCount} người`;
 }
 
+$('#end-board').addEventListener('click', () => {
+  sfx.click();
+  openBoard();
+});
+
+$('#end-menu').addEventListener('click', () => {
+  sfx.click();
+  showMenu();
+});
+
 // ---------- Âm thanh ----------
 function renderSoundButtons() {
   const sound = $('#btn-sound');
@@ -650,7 +814,7 @@ async function boot() {
       else toast('Không kết nối được máy chủ. Hãy thử tải lại trang.');
     }
   }
-  show('welcome');
+  showMenu();
 }
 
 boot();
