@@ -38,10 +38,13 @@ async function answerCurrent(game, token, right) {
   return game.answer(token, { qIndex: state.question.qIndex, choice });
 }
 
-// Trả lời 3 câu của một vòng, `rightCount` câu đầu đúng.
+// Trả lời hết các câu của vòng hiện tại (vòng cuối có thể ít hơn 3 câu), `rightCount` câu đầu đúng.
 async function answerRound(game, token, rightCount) {
   let res;
-  for (let i = 0; i < RULES.questionsPerRound; i++) res = await answerCurrent(game, token, i < rightCount);
+  for (let i = 0; i < RULES.questionsPerRound; i++) {
+    res = await answerCurrent(game, token, i < rightCount);
+    if (res.state.phase !== 'question' || res.state.qIndex % RULES.questionsPerRound === 0) break;
+  }
   return res;
 }
 
@@ -54,13 +57,16 @@ async function expectError(promise, status) {
   await assert.rejects(promise, (err) => err.status === status);
 }
 
-test('bộ câu hỏi: 21 câu, đáp án khớp với đáp án người dùng cung cấp', () => {
-  assert.equal(QUESTIONS.length, 21);
-  const key = 'ABBCABCCABDBBBCBCBACC';
+test('bộ câu hỏi: 20 câu, đáp án khớp với đáp án người dùng cung cấp, không trùng câu', () => {
+  assert.equal(QUESTIONS.length, 20);
+  // Văn hóa · Đạo đức qua tình huống · Cần kiệm liêm chính · Xây đi đôi với chống
+  const key = 'ABBAC' + 'BDACB' + 'BCBCB' + 'BBCBB';
   QUESTIONS.forEach((q, i) => {
     assert.equal(q.options.length, 4, `câu ${i + 1}`);
+    assert.equal(new Set(q.options).size, 4, `câu ${i + 1} có đáp án trùng`);
     assert.equal('ABCD'[q.answer], key[i], `đáp án câu ${i + 1}`);
   });
+  assert.equal(new Set(QUESTIONS.map((q) => q.text)).size, QUESTIONS.length);
 });
 
 test('vòng quay có 20 đỏ, 20 đen, 1 xanh', () => {
@@ -89,7 +95,7 @@ test('vào game: điểm 0, chưa có câu hỏi cho tới khi bắt đầu, tê
   await expectError(game.join('   '), 400);
 });
 
-test('thứ tự câu hỏi được xáo và là hoán vị đủ 21 câu', async () => {
+test('thứ tự câu hỏi được xáo và là hoán vị đủ bộ câu hỏi', async () => {
   const store = createMemoryStore();
   const game = createGame({ store });
   const { token } = await game.join('A');
@@ -255,10 +261,10 @@ test('chơi trọn game: 7 vòng, kết thúc ở trạng thái done', async () 
     for (let i = 0; i < 3; i++) state = (await spin(game, token, 'black', 0)).state;
   }
   assert.equal(state.phase, 'done');
-  assert.equal(state.balance, 21 * 300);
-  assert.equal(state.correctCount, 21);
+  assert.equal(state.balance, QUESTIONS.length * 300);
+  assert.equal(state.correctCount, QUESTIONS.length);
   assert.equal(state.rank, 1);
-  await expectError(game.answer(token, { qIndex: 21, choice: 0 }), 409);
+  await expectError(game.answer(token, { qIndex: QUESTIONS.length, choice: 0 }), 409);
   await expectError(game.spin(token, { spinsLeft: 0, color: 'red', amount: 0 }), 409);
   const board = await game.leaderboard();
   assert.deepEqual([board.finished, board.players[0].done, board.players[0].round], [1, true, 7]);
@@ -270,6 +276,31 @@ test('0 điểm ở vòng cuối → kết thúc game luôn', async () => {
   for (let round = 1; round <= 7; round++) state = (await answerRound(game, token, 0)).state;
   assert.equal(state.phase, 'done');
   assert.equal(state.round, 7);
+});
+
+test('vòng cuối chỉ có 2 câu (20 câu) vẫn được 3 lượt quay', async () => {
+  const { game, token, nextSlots } = await setup();
+  for (let round = 1; round <= 6; round++) {
+    await answerRound(game, token, 0); // 0 điểm → bỏ qua pha quay, sang vòng sau
+  }
+  const first = await answerCurrent(game, token, true);
+  assert.deepEqual([first.state.round, first.state.questionInRound, first.state.phase], [7, 2, 'question']);
+  const last = await answerCurrent(game, token, true);
+  assert.deepEqual([last.state.phase, last.state.spinsLeft, last.state.balance], ['spin', 3, 600]);
+  nextSlots(RED, RED, RED);
+  let state;
+  for (let i = 0; i < 3; i++) state = (await spin(game, token, 'black', 0)).state;
+  assert.equal(state.phase, 'done');
+});
+
+test('lượt chơi từ bộ câu hỏi cũ (khác số câu) bị coi như không tồn tại', async () => {
+  const store = createMemoryStore();
+  const game = createGame({ store });
+  const { token } = await game.join('Bộ cũ');
+  const snap = await store.lockAndRead(token);
+  snap.player.order = [...snap.player.order, 20]; // giả lập 21 câu của bộ trước
+  await store.commit(token, { player: snap.player, summary: { id: snap.player.id } });
+  await expectError(game.getState(token), 401);
 });
 
 test('bảng xếp hạng: điểm giảm dần, bằng điểm thì ai đúng nhiều hơn xếp trên; không lộ token', async () => {

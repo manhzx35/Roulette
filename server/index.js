@@ -17,7 +17,7 @@ if (process.env.FORCE_SLOT !== undefined && process.env.NODE_ENV !== 'production
 const { app, store, flush } = createApp({ forceSlot });
 
 app.listen(port, () => {
-  console.log(`Roulette Tôn Giáo đang chạy tại http://localhost:${port}`);
+  console.log(`Roulette Đạo Đức đang chạy tại http://localhost:${port}`);
   console.log(`Bảng xếp hạng:            http://localhost:${port}/bxh`);
   for (const url of lanUrls(port)) console.log(`Trong mạng LAN:           ${url}`);
   console.log(store.kind === 'upstash' ? 'Lưu dữ liệu: Upstash Redis' : 'Lưu dữ liệu: bộ nhớ + data/state.json');

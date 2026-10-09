@@ -1,8 +1,8 @@
 {
-  "name": "roulette-ton-giao",
+  "name": "roulette-dao-duc",
   "version": "1.0.0",
   "private": true,
-  "description": "Roulette Tôn Giáo – game ôn tập trắc nghiệm kết hợp vòng quay Roulette",
+  "description": "Roulette Đạo Đức – game ôn tập trắc nghiệm tư tưởng Hồ Chí Minh kết hợp vòng quay Roulette",
   "type": "module",
   "main": "index.js",
   "scripts": {

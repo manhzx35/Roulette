@@ -244,7 +244,10 @@ export function createGame({
     let result;
     try {
       p = snap.player;
-      if (!p) throw new GameError(401, 'Không tìm thấy người chơi. Hãy vào game lại.');
+      // Lượt chơi tạo từ bộ câu hỏi cũ (đã đổi số câu) không chơi tiếp được → coi như chưa có người chơi.
+      if (!p || p.order?.length !== totalQuestions) {
+        throw new GameError(401, 'Không tìm thấy người chơi. Hãy vào game lại.');
+      }
       const before = JSON.stringify(p);
       result = fn(p);
       if (JSON.stringify(p) !== before) write = { player: p, summary: summaryOf(p) };

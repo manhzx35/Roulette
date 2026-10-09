@@ -1,6 +1,6 @@
-# Roulette Tôn Giáo
+# Roulette Đạo Đức
 
-Game web ôn tập trắc nghiệm (21 câu, chủ đề Tôn giáo) kết hợp vòng quay Roulette. Chơi trên điện thoại hoặc máy tính, có bảng xếp hạng realtime để chiếu lên màn hình lớn.
+Game web ôn tập trắc nghiệm (20 câu, chủ đề tư tưởng Hồ Chí Minh về văn hóa và đạo đức) kết hợp vòng quay Roulette. Chơi trên điện thoại hoặc máy tính, có bảng xếp hạng realtime để chiếu lên màn hình lớn.
 
 ## Luật chơi
 
@@ -120,7 +120,7 @@ server/
   index.js         chạy server thường (npm start)
   app.js           Express: API, BXH (SSE hoặc CDN cache), mã QR, đặt lại
   game.js          luật chơi, chạy hoàn toàn ở server
-  questions.js     21 câu hỏi + đáp án, không bao giờ gửi xuống trình duyệt
+  questions.js     20 câu hỏi + đáp án, không bao giờ gửi xuống trình duyệt
   stores/memory.js lưu trong bộ nhớ + data/state.json (1 server)
   stores/upstash.js lưu trong Upstash Redis (nhiều server, Vercel)
 public/

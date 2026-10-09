@@ -30,6 +30,8 @@ const wheel = new Wheel($('#wheel'), { onTick: () => sfx.tick() });
 const cards = [...document.querySelectorAll('.bet-card')];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// Số câu của vòng hiện tại (vòng cuối có thể ít hơn 3 nếu tổng số câu không chia hết cho 3).
+const roundSize = (s) => Math.min(s.questionsPerRound, s.totalQuestions - (s.round - 1) * s.questionsPerRound);
 const initial = (name) => [...(name.trim().split(' ').pop() || '?')][0].toUpperCase();
 
 // ---------- Khung chung ----------
@@ -56,7 +58,7 @@ function renderHud() {
   dots.replaceChildren();
   if (S.phase === 'question') {
     const answeredInRound = S.qIndex % S.questionsPerRound;
-    for (let i = 0; i < S.questionsPerRound; i++) {
+    for (let i = 0; i < roundSize(S); i++) {
       const dot = document.createElement('span');
       dot.className = `dot${i < answeredInRound ? ' done' : i === answeredInRound ? ' now' : ''}`;
       dots.append(dot);
@@ -165,7 +167,7 @@ function skipNotice(skipped) {
     title: 'Hết điểm rồi!',
     body: done
       ? `Bạn đang có 0 điểm nên bỏ qua ${skipped} lượt quay còn lại. Trò chơi đã kết thúc!`
-      : `Bạn đang có 0 điểm nên bỏ qua ${skipped} lượt quay còn lại. Trả lời 3 câu hỏi tiếp theo để kiếm thêm điểm nhé!`,
+      : `Bạn đang có 0 điểm nên bỏ qua ${skipped} lượt quay còn lại. Trả lời ${roundSize(S)} câu hỏi tiếp theo để kiếm thêm điểm nhé!`,
     button: done ? 'Xem kết quả' : 'Sang câu hỏi tiếp',
   });
 }
@@ -349,9 +351,9 @@ function showReady() {
   const inRound = S.qIndex % S.questionsPerRound;
   const fresh = inRound === 0;
   $('#ready-kicker').textContent = fresh ? (S.round === 1 ? 'Sẵn sàng chưa?' : 'Vòng mới') : `Vòng ${S.round}/${S.totalRounds}`;
-  $('#ready-title').textContent = fresh ? `Vòng ${S.round}` : `Câu ${inRound + 1}/${S.questionsPerRound}`;
+  $('#ready-title').textContent = fresh ? `Vòng ${S.round}` : `Câu ${inRound + 1}/${roundSize(S)}`;
   $('#ready-sub').textContent = fresh
-    ? `${S.questionsPerRound} câu hỏi · 30 giây mỗi câu · Đúng +300 điểm`
+    ? `${roundSize(S)} câu hỏi · 30 giây mỗi câu · Đúng +300 điểm`
     : 'Đồng hồ 30 giây bắt đầu chạy ngay khi bạn bấm.';
   $('#ready-btn').textContent = fresh ? 'Bắt đầu vòng' : 'Tiếp tục';
   show('ready');
@@ -371,7 +373,7 @@ function showQuestion() {
   const q = S.question;
   answered = false;
   lastAnswer = null;
-  $('#q-meta').textContent = `Vòng ${S.round} · Câu ${S.questionInRound}/${S.questionsPerRound}`;
+  $('#q-meta').textContent = `Vòng ${S.round} · Câu ${S.questionInRound}/${roundSize(S)}`;
   $('#q-text').textContent = q.text;
   const box = $('#options');
   box.replaceChildren(
